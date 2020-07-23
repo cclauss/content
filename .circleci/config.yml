@@ -139,6 +139,11 @@ references:
       name: Create Content Artifacts
       when: always
       command: |
+        if [ -n "${NIGHTLY}" ]
+          then
+            echo "Skipping - not running in nightly"
+            exit 0
+        fi
         demisto-sdk create-content-artifacts -a $CIRCLE_ARTIFACTS
         # create zip with contents of content_new.zip and content_test.zip for use in updating content on instances
         cp "$CIRCLE_ARTIFACTS/content_new.zip" "$CIRCLE_ARTIFACTS/all_content.zip"
@@ -290,6 +295,11 @@ references:
       name: Calculate Packs Dependencies
       when: always
       command: |
+        if [ -n "${NIGHTLY}" ]
+          then
+            echo "Skipping - not running in nightly"
+            exit 0
+        fi
         python3 ./Tests/Marketplace/packs_dependencies.py -i ./Tests/id_set.json -o $CIRCLE_ARTIFACTS/packs_dependencies.json
 
   update_tests_step: &update_tests_step
@@ -481,11 +491,21 @@ jobs:
                 name: Prepare Content Packs For Testing
                 when: always
                 command: |
+                  if [ -n "${NIGHTLY}" ]
+                    then
+                      echo "Skipping - not running in nightly"
+                      exit 0
+                  fi
                   ./Tests/scripts/prepare_content_packs_for_testing.sh
                   echo "$CIRCLE_BUILD_NUM" > create_instances_build_num.txt  # so that later jobs in this workflow could configure the right path
             - run:
                 name: Zip Content Packs From GCS
                 command: |
+                  if [ -n "${NIGHTLY}" ]
+                    then
+                      echo "Skipping - not running in nightly"
+                      exit 0
+                  fi
                   GCS_PATH=$(mktemp)
                   ZIP_FOLDER=$(mktemp -d)
                   echo $GCS_MARKET_KEY > $GCS_PATH
